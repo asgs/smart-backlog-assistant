@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import chromadb
@@ -13,6 +13,7 @@ import time
 import concurrent.futures
 import hashlib
 import encodings
+import numpy as np
 
 MAX_RECORD_COUNT = 1000
 MAX_THREAD_COUNT = 8
@@ -32,7 +33,7 @@ dataset = csv.read_csv(SRC_DATA_LOC,
 logger.info("source data read successfully")
 
 transformer = SentenceTransformer(EMBEDDING_LM_NAME)
-
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 tokenizer = AutoTokenizer.from_pretrained(CAUSAL_LM_NAME)
 auto_causal_model = AutoModelForCausalLM.from_pretrained(CAUSAL_LM_NAME,
 	device_map="auto")
@@ -40,7 +41,7 @@ auto_causal_model = AutoModelForCausalLM.from_pretrained(CAUSAL_LM_NAME,
 chroma_client = chromadb.Client()
 
 #chunked_doc_collxn = chroma_client.create_collection("data-chunked")
-full_doc_collxn = chroma_client.create_collection("data-full")
+doc_collxn = chroma_client.create_collection("data-full")
 
 futures = []
 #all_texts = []
@@ -61,16 +62,16 @@ def gen_hash(input: str) -> str:
 	h256.update(input.encode(encodings.utf_8.getregentry().name))
 	return h256.hexdigest()
 
-def index_full_doc_into_collxn(data, index=None):
+def index_doc_into_collxn(data, index=None):
 	#all_texts.append(data)
 	embedding = transformer.encode(data)
 	#all_embeddings.append(embedding)
 	if index != None:
-		logger.info(f"Indexing data#{index}'s full contents as is")
-		full_doc_collxn.add(embeddings=[embedding], ids=[str(index)], documents=[data])
+		logger.info(f"Indexing data#{index}")
+		doc_collxn.add(embeddings=[embedding], ids=[str(index)], documents=[data])
 	else:
-		logger.info(f"Indexing new data's full contents as is")
-		full_doc_collxn.add(embeddings=[embedding], ids=[gen_hash(data)], documents=[data])
+		logger.info(f"Indexing new data's")
+		doc_collxn.add(embeddings=[embedding], ids=[gen_hash(data)], documents=[data])
 
 def index_chunked_doc_into_collxn(index, row_data):
 	chunks = chunk_data(row_data)
@@ -100,7 +101,7 @@ with concurrent.futures.ThreadPoolExecutor(MAX_THREAD_COUNT) as tp_executor:
 		logger.info(f"Reading row# {index}")
 		# Summary and Description capture the essence of data involved.
 		row_data = f"{summary}. {description}"
-		futures.append(tp_executor.submit(index_full_doc_into_collxn, row_data, index))
+		futures.append(tp_executor.submit(index_doc_into_collxn, row_data, index))
 		#futures.append(tp_executor.submit(index_chunked_doc_into_collxn, index, row_data))
 		if index == (MAX_RECORD_COUNT - 1):
 			logger.info(f"Limiting the ingesiton to {MAX_RECORD_COUNT} records")
@@ -115,20 +116,29 @@ del dataset
 logger.info("Ready to serve user queries now!")
 
 @app.post("/summarize")
-async def summarize(input: str):
+async def summarize(input: str, token_count: int = 500, top_p: float = 0.5, temperature: float = 0.7):
 	logger.info(f"user input is '{input}'")
 	st = time.perf_counter()
 	query_embedding = transformer.encode(input)
-	full_data_summary = full_doc_collxn.query(query_embeddings=[query_embedding], n_results=1)
-	full_doc = full_data_summary['documents'][0]
-	input_tokens = tokenizer(build_model_prompt(full_doc[0], input), return_tensors="pt").to(auto_causal_model.device)
-	output_tokens = auto_causal_model.generate(**input_tokens, max_new_tokens=1000, top_p=0.9, temperature=0.7)
+	results = doc_collxn.query(query_embeddings=[query_embedding], n_results=3)
+	docs = results['documents'][0]
+	logger.info(f"Docs are {docs}")
+	scores = reranker.predict([(input, doc) for doc in docs])
+	reranked_doc = docs[np.argmax(scores)]
+	logger.info(f"Reranked doc is {reranked_doc}")
+	input_tokens = tokenizer(build_model_prompt(docs[0], input), return_tensors="pt").to(auto_causal_model.device)
+	output_tokens = auto_causal_model.generate(**input_tokens, max_new_tokens=token_count, top_p=top_p, temperature=temperature)
 	output_text = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
-	print(f"Summary is {output_text}")
+	logger.info(f"LLM Summary is {output_text}")
+	reranked_input_tokens = tokenizer(build_model_prompt(reranked_doc, input), return_tensors="pt").to(auto_causal_model.device)
+	reranked_output_tokens = auto_causal_model.generate(**reranked_input_tokens, max_new_tokens=token_count, top_p=top_p, temperature=temperature)
+	reranked_output_text = tokenizer.decode(reranked_output_tokens[0], skip_special_tokens=True)
+	logger.info(f"LLM reranked Summary is {reranked_output_text}")
 	return {
 		"result": {
-			"nearest_doc": full_doc,
-			"summary": output_text[output_text.find(SUMMARY_PREFIX):]
+			"nearest_doc": reranked_doc,
+			"summary": output_text[output_text.find(SUMMARY_PREFIX) + len(SUMMARY_PREFIX):],
+			"reranked_summary": reranked_output_text[reranked_output_text.find(SUMMARY_PREFIX) + len(SUMMARY_PREFIX):]
 		},
 		"metadata": {
 			"time_taken_seconds": f"{time.perf_counter() - st:.3f}"
@@ -136,8 +146,9 @@ async def summarize(input: str):
 	}
 
 def build_model_prompt(contextual_data: str, query: str):
+	logger.debug(f"Forming an LLM prompt using context:{contextual_data} and query:{query}")
 	return f"""
-		You are a helpful assistant. You provide your response to the point without asking any follow-up questions unless absolutely necessary.
+		As a helpful AI assistant, your job is to 1. format and summarize the query with detailed requirements to the point using the Context provided. 2. not hallucinate and provide any detail outside this Context. 3. ensure your response is NOT truncated midway.
 
 		Context: {contextual_data}
 
@@ -148,5 +159,5 @@ def build_model_prompt(contextual_data: str, query: str):
 
 @app.post("/ingest")
 async def ingest(input: str):
-	index_full_doc_into_collxn(data=input)
-
+	index_doc_into_collxn(data=input)
+	return {"status": "data ingested successfully."}
