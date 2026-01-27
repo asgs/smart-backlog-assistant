@@ -46,19 +46,16 @@ class ModelManager:
     def tokenizer(self):
         if self._tokenizer is None:
             logger.info(f"Loading Tokenizer: {settings.CAUSAL_LM_NAME}")
-            self._tokenizer = AutoTokenizer.from_pretrained(settings.CAUSAL_LM_NAME,
-                revision=settings.CAUSAL_LM_REVISION)
+            self._tokenizer = AutoTokenizer.from_pretrained(revision=settings.CAUSAL_LM_REVISION,
+		pretrained_model_name_or_path=settings.CAUSAL_LM_NAME)
         return self._tokenizer
 
     @property
     def causal_model(self):
         if self._causal_model is None:
             logger.info(f"Loading Causal Model: {settings.CAUSAL_LM_NAME}")
-            self._causal_model = AutoModelForCausalLM.from_pretrained(
-                settings.CAUSAL_LM_NAME,
-                revision=settings.CAUSAL_LM_REVISION,
-                device_map="auto"
-            )
+            self._causal_model = AutoModelForCausalLM.from_pretrained(revision=settings.CAUSAL_LM_REVISION,
+		pretrained_model_name_or_path=settings.CAUSAL_LM_NAME, device_map="auto")
         return self._causal_model
 
 logger.info("Preparing ModelManager...")
