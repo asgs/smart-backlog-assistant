@@ -16,4 +16,7 @@ class Settings:
         self.TIKTOKEN_ENCODING = os.getenv("TIKTOKEN_ENCODING", "gpt2")
         self.SUMMARY_PREFIX = os.getenv("SUMMARY_PREFIX", "Summary:")
 
+        # Summary and Description are good enough to store now and query later.
+        self.JIRA_CSV_COLUMNS = os.getenv("JIRA_CSV_COLUMNS", "summary,description").split(",")
+
 settings = Settings()

@@ -18,7 +18,7 @@ This agent needs external data sources to build the knowledge base required to a
 - [Apache JIRA Issues](https://www.kaggle.com/datasets/tedlozzo/apaches-jira-issues?select=issues.csv)
 - [Jira Dataset](https://www.kaggle.com/datasets/cesaranasco/jira-dataset)
 
-whichever dataset is used, the expectation here is it's a CSV file with column names configured in the main.py file
+whichever dataset is used, the expectation here is it's a CSV file with column names configured in the [config.py](config.py) file
 
 # How to Run?
 1. Install python3
@@ -34,11 +34,11 @@ Once the ingestion completes, the app is ready to accept your inputs via the end
 
 ## Ingest a new document
 
-Run `curl -v -XPOST "http://localhost:8000/ingest?input=We%20have%20a%20transport%20optimization%20requirement%20from%20many%20of%20our%20logistics%20clients.%20the%20goal%20is%20to%20evaluate%20all%20the%20lanes%20that%20the%20carriers%20could%20possibly%20use%20and%20provide%20the%20most%20cost-effective%20ones%20in%20terms%20of%20the%20criteria%20below.%20%231%20-%20lowest%20lane%20pricing%2C%20%232-%20%20highest%20carrier%20delivery%20success%20rate%2C%20and%20%233%20-%20shortest%20distance.%20this%20story%20will%20be%20assigned%20to%20development%20team%20to%20implement%20these%20criteria"|jq`
+Run the [ingest](test-scripts/ingest.py) script
 
 ## Summarize a query
 
-Run `curl -v -XPOST "http://localhost:8000/summarize?input=This%20story%20is%20to%20track%20the%20development%20efforts%20required%20to%20implement%20the%20transport%20optimization%20requirement.%20Break%20down%20the%20tasks%20involved%20with%20a%20high%2Dlevel%20estimate%20to%20build%20and%20test%20each%20and%20every%20criterion%20to%20achieve%20the%20optimization"|jq`
+Run the [summarize](test-scripts/summarize.py) script
 
 # TODOs
 1. Provide options to switch to a cloud-model accepting necessary configs like URL, Auth Token/API Key, etc
@@ -49,4 +49,5 @@ Run `curl -v -XPOST "http://localhost:8000/summarize?input=This%20story%20is%20t
 6. [Done] - ~~Move the local LM name, dataset location, CSV column names to a configuration file~~
 7. Model Quantization
 8. Model Fine/Prompt-tuning
-9. Configure ChromaDB to use hnsw indexing
+9. [Done] - ~~Configure ChromaDB to use hnsw indexing~~
+

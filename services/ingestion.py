@@ -6,6 +6,7 @@ from config import settings
 from utils import gen_hash, chunk_data
 from core.model_manager import model_manager
 from core.vector_db import vector_db
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,17 @@ class IngestionService:
         logger.info(f"Indexing data#{index} with hash {id[0:5]} in {chunk_count} chunk(s)")
         vector_db.add_chunks(embeddings=source_embeddings, ids=ids)
 
+    def construct_row_data(self, row) -> str:
+        cols = settings.JIRA_CSV_COLUMNS
+        data_parts = []
+        for col in cols:
+            data_part = row[col]
+            if data_part is None or data_part == "" or data_part == "nan" or data_part == "NaN" or data_part is np.nan:
+                continue
+            data_parts.append(data_part)
+        logger.info(f"Data parts: {data_parts}")
+        return ". ".join(data_parts)
+
     def ingest_from_csv(self) -> None:
         start_time = time.perf_counter()
         logger.info(f"About to read source data from the location '{settings.SRC_DATA_LOC}'")
@@ -51,12 +63,9 @@ class IngestionService:
 
         with concurrent.futures.ThreadPoolExecutor(settings.MAX_THREAD_COUNT) as tp_executor:
             for index, row in data_frame.iterrows():
-                summary = row['summary']
-                description = row['description']
                 logger.info(f"Reading row#{index}")
 
-                # Summary and Description are good enough to store now and query later.
-                row_data = f"{summary}. {description}"
+                row_data = self.construct_row_data(row)
 
                 self.futures.append(tp_executor.submit(self.index_full_doc_into_collxn, row_data, index))
                 self.futures.append(tp_executor.submit(self.index_chunked_doc_into_collxn, row_data, index))
