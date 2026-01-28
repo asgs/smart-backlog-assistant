@@ -2,26 +2,22 @@ import time
 import numpy as np
 import logging
 from config import settings
-from utils import build_model_prompt
+from utils import build_chat_messages
 from core.model_manager import model_manager
 from core.vector_db import vector_db
 from request_models import SummarizeRequest
 
 logger = logging.getLogger(__name__)
+show_encoding_progress = False
+if logger.isEnabledFor(logging.DEBUG):
+    show_encoding_progress = True
 
 class SummarizerService:
-    async def summarize(self, request: SummarizeRequest):
-        user_input = request.user_input
-        token_count = request.token_count
-        top_p = request.top_p
-        temperature = request.temperature
-        top_k = request.top_k
-        logger.info(f"user_input is '{user_input}'")
-        st = time.perf_counter()
 
-        query_embedding = model_manager.transformer.encode(user_input)
-
+    def query_vector_db(self, user_input: str, top_k: int) -> list[str]:
+        query_embedding = model_manager.transformer.encode(user_input, prompt_name="document", show_progress_bar=show_encoding_progress)
         chunked_search_results = vector_db.query_chunks(query_embeddings=[query_embedding], n_results=top_k)
+        logger.debug(f"chunked_search_results are {chunked_search_results}")
         ids = chunked_search_results['ids'][0]
         logger.debug(f"ids from chunked_docs search are {ids}")
 
@@ -33,39 +29,67 @@ class SummarizerService:
         docs = full_search_results['documents']
         logger.debug(f"Docs are {docs}")
 
-        if not docs:
-            return {
-                "result": {
-                    "nearest_doc": None,
-                    "summary": "No relevant documents found."
-                },
-                "metadata": {
-                    "time_taken_seconds": f"{time.perf_counter() - st:.3f}"
-                }
-            }
-
-        scores = model_manager.reranker.predict([(user_input, doc) for doc in docs])
+        return docs
+    
+    def rerank_docs(self, user_input: str, docs: list[str]) -> list[str]:
+        scores = model_manager.reranker.predict([(user_input, doc) for doc in docs], show_progress_bar=show_encoding_progress)
         best_doc_idx = np.argmax(scores)
         doc = docs[best_doc_idx]
         logger.debug(f"Reranked doc is {doc}")
 
-        prompt = build_model_prompt(doc, user_input)
+        return doc
+
+    def query_lm(self, user_input: str, doc: str, token_count: int, top_p: float, temperature: float) -> str:
+        messages = build_chat_messages(doc, user_input)
+        prompt = model_manager.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         in_tokens = model_manager.tokenizer(prompt, return_tensors="pt").to(model_manager.causal_model.device)
 
         out_tokens = model_manager.causal_model.generate(
             **in_tokens,
             max_new_tokens=token_count,
             top_p=top_p,
-            temperature=temperature
+            temperature=temperature,
+            do_sample=True,
+            repetition_penalty=1.2,
+            no_repeat_ngram_size=4
         )
         out_text = model_manager.tokenizer.decode(out_tokens[0], skip_special_tokens=True)
         logger.info(f"LLM reranked Summary is {out_text}")
 
-        summary_start = out_text.rfind(settings.SUMMARY_PREFIX)
+        return out_text
+
+    def extract_summary(self, response: str) -> str:
+        summary_start = response.rfind(settings.ASSISTANT_PREFIX)
         if summary_start != -1:
-            summary = out_text[summary_start + len(settings.SUMMARY_PREFIX):].strip()
+            summary = response[summary_start + len(settings.ASSISTANT_PREFIX):].strip()
         else:
-            summary = out_text
+            summary = response
+        return summary
+
+    async def summarize(self, request: SummarizeRequest):
+        user_input = request.user_input
+        top_k = request.top_k
+        logger.info(f"user_input is '{user_input}'")
+        st = time.perf_counter()
+
+        docs = self.query_vector_db(user_input, top_k)
+
+        if not docs:
+            return {
+                "result": {
+                    "nearest_doc": None,
+                    "summary": "Unable to summarize the given query."
+                },
+                "metadata": {
+                    "time_taken_seconds": f"{time.perf_counter() - st:.3f}"
+                }
+            }
+
+        doc = self.rerank_docs(user_input, docs)
+
+        response = self.query_lm(user_input, doc, request.token_count, request.top_p, request.temperature)
+
+        summary = self.extract_summary(response)
 
         return {
             "result": {

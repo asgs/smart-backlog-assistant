@@ -25,14 +25,9 @@ def chunk_data(data: str, max_tokens: int = None) -> list[str]:
         chunks.append(chunk_text)
     return chunks
 
-def build_model_prompt(contextual_data: str, query: str) -> str:
-    logger.debug(f"Forming an LLM prompt using context:{contextual_data} and query:{query}")
-    return f"""
-        As a helpful AI assistant, your job is to 1. format and summarize the query with detailed requirements to the point using the Context provided. 2. not provide any detail outside this Context. 3. ensure your response is NOT truncated midway.
-
-        Context: {contextual_data}
-
-        Query: {query}
-
-        Summary:
-        """
+def build_chat_messages(contextual_data: str, query: str) -> str:
+    logger.debug(f"Forming a chat prompt using context:{contextual_data} and query:{query}")
+    messages = []
+    messages.append({"role": "system", "content": f"You're a Smart Backlog Assistant. Users expect you to reword, summarize, and format their queries into a nice JIRA-style ticket with fields such as 1. Description, 2. Acceptance Criteria, 3. Issue Priority, and 4. Issue Category based on this Context - {contextual_data}"})
+    messages.append({"role": "user", "content": f"{query}"})
+    return messages

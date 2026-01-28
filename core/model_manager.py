@@ -38,8 +38,8 @@ class ModelManager:
     @property
     def reranker(self):
         if self._reranker is None:
-            logger.info(f"Loading CrossEncoder: {settings.RERANKER_MODEL_NAME}")
-            self._reranker = CrossEncoder(settings.RERANKER_MODEL_NAME)
+            logger.info(f"Loading CrossEncoder: {settings.RERANKER_LM_NAME}")
+            self._reranker = CrossEncoder(settings.RERANKER_LM_NAME)
         return self._reranker
 
     @property
@@ -56,6 +56,7 @@ class ModelManager:
             logger.info(f"Loading Causal Model: {settings.CAUSAL_LM_NAME}")
             self._causal_model = AutoModelForCausalLM.from_pretrained(revision=settings.CAUSAL_LM_REVISION,
 		pretrained_model_name_or_path=settings.CAUSAL_LM_NAME, device_map="auto")
+        self._causal_model.generation_config.pad_token_id = self.tokenizer.eos_token_id
         return self._causal_model
 
 logger.info("Preparing ModelManager...")

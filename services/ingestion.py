@@ -9,6 +9,9 @@ from core.vector_db import vector_db
 import numpy as np
 
 logger = logging.getLogger(__name__)
+show_encoding_progress = False
+if logger.isEnabledFor(logging.DEBUG):
+    show_encoding_progress = True
 
 class IngestionService:
     def __init__(self):
@@ -21,12 +24,13 @@ class IngestionService:
             id = gen_hash(data)
 
         ids = [id]
-        logger.info(f"Indexing data#{index} with hash {id[0:5]}")
+        if index is not None and index % settings.STATUS_UPDATE_STEP == 0:
+            logger.info(f"Indexing data#{index} with hash {id[0:5]}")
         vector_db.add_full_docs(ids=ids, documents=[data])
 
     def index_chunked_doc_into_collxn(self, data: str, index=None, id=None) -> None:
         chunks = chunk_data(data)
-        source_embeddings = model_manager.transformer.encode(chunks)
+        source_embeddings = model_manager.transformer.encode(chunks, prompt_name="document", show_progress_bar=show_encoding_progress)
         ids = []
         if id is None:
             id = gen_hash(data)
@@ -34,7 +38,8 @@ class IngestionService:
         chunk_count = len(chunks)
         for counter in range(chunk_count):
             ids.append(f"{id}_{counter}")
-        logger.info(f"Indexing data#{index} with hash {id[0:5]} in {chunk_count} chunk(s)")
+        if index is not None and index % settings.STATUS_UPDATE_STEP == 0:
+            logger.info(f"Indexing data#{index} with hash {id[0:5]} in {chunk_count} chunk(s)")
         vector_db.add_chunks(embeddings=source_embeddings, ids=ids)
 
     def construct_row_data(self, row) -> str:
@@ -64,7 +69,8 @@ class IngestionService:
 
         with concurrent.futures.ThreadPoolExecutor(settings.MAX_THREAD_COUNT) as tp_executor:
             for index, row in data_frame.iterrows():
-                logger.info(f"Reading row#{index}")
+                if index % settings.STATUS_UPDATE_STEP == 0:
+                    logger.info(f"Reading row#{index}")
 
                 row_data = self.construct_row_data(row)
 
