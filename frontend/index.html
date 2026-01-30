@@ -48,7 +48,7 @@
                                 className={`tab ${activeTab === 'ingest' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('ingest')}
                             >
-                                Ingest Data
+                                Ingest New Data
                             </button>
                         </div>
 
@@ -98,10 +98,10 @@
             return (
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label className="label">Ticket Content / Query</label>
+                        <label className="label">Ticket Content</label>
                         <textarea
                             className="textarea"
-                            placeholder="Paste Jira ticket content or your query here..."
+                            placeholder="Paste Jira ticket content here"
                             value={formData.user_input}
                             onChange={e => setFormData({ ...formData, user_input: e.target.value })}
                             required
@@ -148,7 +148,7 @@
 
                     {response && (
                         <div className="response">
-                            <h3>Response:</h3>
+                            <h3>Summary:</h3>
                             <h5>(Generated in {response.metadata.time_taken_seconds} seconds)</h5>
                             <div dangerouslySetInnerHTML={{ __html: marked.parse(response.result.summary) }}></div>
                         </div>
@@ -190,7 +190,7 @@
                         <label className="label">Content to Ingest</label>
                         <textarea
                             className="textarea"
-                            placeholder="Paste text content to add to the knowledge base..."
+                            placeholder="Paste text content to add to the knowledge base"
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             required
