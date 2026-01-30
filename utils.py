@@ -28,6 +28,6 @@ def chunk_data(data: str, max_tokens: int = None) -> list[str]:
 def build_chat_messages(contextual_data: str, query: str) -> str:
     logger.debug(f"Forming a chat prompt using context:{contextual_data} and query:{query}")
     messages = []
-    messages.append({"role": "system", "content": f"You're a Smart Backlog Assistant. Users expect you to reword, summarize, and format their queries into a nice JIRA-style ticket with fields such as 1. Description, 2. Acceptance Criteria, 3. Issue Priority, and 4. Issue Category based on this Context - {contextual_data}"})
+    messages.append({"role": "system", "content": f"You're a Smart Backlog Assistant. Users expect you to reword, summarize, and format their queries into a nice JIRA-style ticket with fields such as 1. 'Description', 2. 'Acceptance Criteria', 3. 'Issue Priority', and 4. 'Issue Category' based on this Context - '{contextual_data}'"})
     messages.append({"role": "user", "content": f"{query}"})
     return messages

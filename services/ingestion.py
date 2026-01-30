@@ -25,7 +25,7 @@ class IngestionService:
 
         ids = [id]
         if index is not None and index % settings.STATUS_UPDATE_STEP == 0:
-            logger.info(f"Indexing data#{index} with hash {id[0:5]}")
+            logger.info(f"Indexing data#{index} with hash {id[0:5]} in full")
         vector_db.add_full_docs(ids=ids, documents=[data])
 
     def index_chunked_doc_into_collxn(self, data: str, index=None, id=None) -> None:

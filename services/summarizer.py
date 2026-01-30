@@ -41,7 +41,7 @@ class SummarizerService:
 
     def query_lm(self, user_input: str, doc: str, token_count: int, top_p: float, temperature: float) -> str:
         messages = build_chat_messages(doc, user_input)
-        prompt = model_manager.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        prompt = model_manager.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=False)
         in_tokens = model_manager.tokenizer(prompt, return_tensors="pt").to(model_manager.causal_model.device)
 
         out_tokens = model_manager.causal_model.generate(
