@@ -41,13 +41,16 @@ Run the [ingest](test-scripts/ingest.py) script
 Run the [summarize](test-scripts/summarize.py) script
 
 # TODOs
+1. [Done] - ~~Build a basic GUI for user to submit their queries and view the responses returned~~
+2. [Done] - ~~Provide an option to user to retrieve top-k results. The default is 3 now~~
+3. [**WIP**] - Provide an endpoint to ingest one or more documents or reingest one or more datasources on demand
+4. [Done] - ~~Move the local LM name, dataset location, CSV column names to a configuration file~~
+5. [**WIP**] - Model Fine/Prompt-tuning
+6. [Done] - ~~Configure ChromaDB to use hnsw indexing~~
+
+# Future Enhancements
+
 1. Provide options to switch to a cloud-model accepting necessary configs like URL, Auth Token/API Key, etc
-2. [Done] - ~~Build a basic GUI for user to submit their queries and view the responses returned~~
-3. [Done] - ~~Provide an option to user to retrieve top-k results. The default is 3 now~~
-4. [**WIP**] - Provide an endpoint to ingest one or more documents or reingest one or more datasources on demand
-5. Provide an endpoint to save/load pre-trained models on demand
-6. [Done] - ~~Move the local LM name, dataset location, CSV column names to a configuration file~~
-7. Model Quantization
-8. Model Fine/Prompt-tuning
-9. [Done] - ~~Configure ChromaDB to use hnsw indexing~~
+2. Provide an endpoint to save/load pre-trained models on demand
+3. Model Quantization
 
