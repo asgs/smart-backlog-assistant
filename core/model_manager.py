@@ -47,7 +47,7 @@ class ModelManager:
         if self._tokenizer is None:
             logger.info(f"Loading Tokenizer: {settings.CAUSAL_LM_NAME}")
             self._tokenizer = AutoTokenizer.from_pretrained(revision=settings.CAUSAL_LM_REVISION,
-		pretrained_model_name_or_path=settings.CAUSAL_LM_NAME)
+		pretrained_model_name_or_path=settings.CAUSAL_LM_NAME, use_fast=True)
         return self._tokenizer
 
     @property

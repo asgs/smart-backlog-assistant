@@ -1,10 +1,11 @@
+from request_models import TuneRequest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from services.ingestion import ingestion_service
 from services.summarizer import summarizer_service
 from fastapi.staticfiles import StaticFiles
-from request_models import SummarizeRequest, IngestRequest
+from request_models import SummarizeRequest, IngestRequest, TuneRequest
 
 logging.basicConfig(
     format='%(asctime)s [%(levelname)s] [%(threadName)s@%(name)s] - %(message)s', 
@@ -40,3 +41,7 @@ async def summarize(request: SummarizeRequest):
 async def ingest(request: IngestRequest):
     index = await ingestion_service.ingest_single(request.user_input)
     return {"status": "data ingested successfully.", "id": index}
+
+@app.post("/tune")
+async def tune(request: TuneRequest):
+    return await summarizer_service.do_few_shot_prompting(request.input, request.output)
