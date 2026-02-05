@@ -12,6 +12,10 @@ This is an attempt to build an AI ~Agent~ **Chatbot** that will read Jira ticket
 - ReactJS for frontend
 - Babel for JSX
 
+# Overall Architecture / Data Flow Visualization
+
+Check the ![Architecture and Component Interaction Diagram](arch-diagram.svg "Arch Diagram"). Thanks to [Mermaid.AI](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4)
+
 # Data Setup
 This agent needs external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources were tried from Kaggle
 
@@ -53,4 +57,4 @@ Run the [summarize](test-scripts/summarize.py) script
 1. Provide options to switch to a cloud-model accepting necessary configs like URL, Auth Token/API Key, etc
 2. Provide an endpoint to save/load pre-trained models on demand
 3. Model Quantization
-
+4. Introduce a Agent Routing layer to route processing to appropriate tool/agent based on the request
