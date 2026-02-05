@@ -52,7 +52,7 @@ Thanks to [Mermaid.ai](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4
 - Build a mini-RAG system using a Vector Store (like ChromaDB) to build the knowledge-base
 - Divide data into smaller chunks to avoid overflowing the context window
 - Maintain two collections in the Vector Store - one for full document contents and one for chunked document contents
-- Include sample inputs and expected outputs within the prompt (few-shot prompting) to guide the LM
+- Include sample inputs and expected outputs within the prompt (few-shot prompting) to guide the LM as against fine-tuning the model which may take more time and resources in favour of accuracy and correctness
 - Use a reranker model to rerank the retrieved documents to improve the quality of the summary
 - Make the parameters like temperature, and top-p configurable while choosing reasonable defaults to balance creativity and coherence
 
@@ -63,19 +63,19 @@ Thanks to [Mermaid.ai](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4
 
 ## Service Layer
 ### Ingestion Service
-    1. Reads data from CSV files / User inputs
-    2. Generates embeddings for the data
-    3. Stores embeddings in ChromaDB along with data
+1. Reads data from CSV files / User inputs
+2. Generates embeddings for the data
+3. Stores embeddings in ChromaDB along with data
 ### Summarization Service
-    1. Generates embeddings for the query
-    2. Retrieves similar embeddings from ChromaDB
-    3. Retrieves full documents corresponding to the embeddings
-    4. Reranks the retrieved documents
-    5. Builds the Chat Template message using the Reranked documents as the Context, along with example input and output pairs to guide the Instruct LM
-    6. Sends the Chat Template message to the Instruct LM to generate the summary
+1. Generates embeddings for the query
+2. Retrieves similar embeddings from ChromaDB
+3. Retrieves full documents corresponding to the embeddings
+4. Reranks the retrieved documents
+5. Builds the Chat Template message using the Reranked documents as the Context, along with example input and output pairs to guide the Instruct LM
+6. Sends the Chat Template message to the Instruct LM to generate the summary
 
 ## Model Layer
-Manage the models below
+Manages the models below
 
 1. Embedding Model
 2. Reranker Model
@@ -120,16 +120,15 @@ In addition, I read and learnt from a lot of blogs, articles, and documentation 
 # TODOs
 1. [Done] - ~~Build a basic GUI for user to submit their queries and view the responses returned~~
 2. [Done] - ~~Provide an option to user to retrieve top-k results. The default is 3 now~~
-3. [**WIP**] - Provide an endpoint to ingest one or more documents or reingest one or more datasources on demand
+3. [**WIP**] - Provide an endpoint to ingest one/more documents or reingest one/more datasources on demand
 4. [Done] - ~~Move the local LM name, dataset location, CSV column names to a configuration file~~
 5. [**WIP**] - Model Fine/Prompt-tuning
 6. [Done] - ~~Configure ChromaDB to use hnsw indexing~~
 
 # Future Enhancements
-
-1. Provide options to switch to a cloud-model accepting necessary configs like URL, Auth Token/API Key, etc
-2. Introduce admin, and user roles and implement Authentication and Authorization to beef up security 
+1. Provide options to switch to a cloud-hosted LM accepting necessary configs like URL, Auth Token/API Key, etc
+2. Introduce admin, and user roles and implement Authn and Authz to beef up security
 3. Provide an endpoint to save/load pre-trained models on demand
-4. Model Quantization to achieve a balance between speed and accuracy and reduce memory footprint
-5. Introduce a Agent Routing layer to route processing to appropriate tool/agent based on the request
+4. Quantize the Models to achieve a balance between speed and accuracy and reduce memory footprint
+5. Introduce an "Agent Routing" layer to route processing to appropriate tool/agent based on the request
 6. Build Data Integration layer to read and ingest data from external sources with different data formats
