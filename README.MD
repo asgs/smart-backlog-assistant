@@ -14,7 +14,7 @@ This is an attempt to build an AI ~Agent~ **Chatbot** that will read Jira ticket
 
 # Overall Architecture / Data Flow Visualization
 Thanks to [Mermaid.AI](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4), you can visualize the overall Architecture and Component Interaction Diagram
-![Architecture and Component Interaction Diagram](arch-diagram-with-interactions.png). 
+![Architecture and Component Interaction Diagram](arch-diagram-with-interactions.png "Architecture Diagram")
 
 # Data Setup
 This agent needs external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources were tried from Kaggle
@@ -32,7 +32,7 @@ whichever dataset is used, the expectation here is that it's a CSV file with col
 5. Download the data sources mentioned in the previous section and unzip to the source-data directory
 6. Run `uvicorn main:app` to ingest sample data and spin up the FastAPI server
 
-Once the ingestion completes, the app is ready with a [GUI](http://localhost:8000/ui/index.html) providing ![ingestion and summarization features](ui-home-sample.png "UI Home Page")
+Once the ingestion completes, the app is ready with a [GUI](http://localhost:8000/ui/index.html) providing a screen like below. ![ingestion and summarization features](ui-home-sample.png "UI Home Page")
 
 # Sample Test
 
