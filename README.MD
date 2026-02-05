@@ -57,8 +57,31 @@ Thanks to [Mermaid.ai](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4
 - Make the parameters like temperature, and top-p configurable while choosing reasonable defaults to balance creativity and coherence
 
 # Implementation
+## App Layer
+1. Exposes REST APIs for ingestion and summarization
+2. Exposes a GUI for user interaction
 
-## Data Setup
+## Service Layer
+### Ingestion Service
+    1. Reads data from CSV files / User inputs
+    2. Generates embeddings for the data
+    3. Stores embeddings in ChromaDB along with data
+### Summarization Service
+    1. Generates embeddings for the query
+    2. Retrieves similar embeddings from ChromaDB
+    3. Retrieves full documents corresponding to the embeddings
+    4. Reranks the retrieved documents
+    5. Builds the Chat Template message using the Reranked documents as the Context, along with example input and output pairs to guide the Instruct LM
+    6. Sends the Chat Template message to the Instruct LM to generate the summary
+
+## Model Layer
+Manage the models below
+
+1. Embedding Model
+2. Reranker Model
+3. Instruct Model
+
+# Data Setup
 This agent depends on external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources are tried from Kaggle
 
 - [Apache JIRA Issues](https://www.kaggle.com/datasets/tedlozzo/apaches-jira-issues?select=issues.csv)
@@ -82,6 +105,17 @@ Once the ingestion completes, the app is ready with a [GUI](http://localhost:800
 
 1. To Ingest a new document, run the [ingest](test-scripts/ingest.py) script
 2. To Summarize a query, run the [summarize](test-scripts/summarize.py) script
+
+# Usage of AI tools
+
+well, isn't fascinating to use AI tools to build AI-powered applications? I used a variety of AI tools to build this application right from understanding the problem to ideation, design, implementation, and finally Architecture diagramming
+
+- ChatGPT 5.2 Go for many basic and intermediate level Q&A
+- GPT4All for local LLM inference
+- Llama, Google Gemini 3 Pro for advanced Q&A and code generation
+- Google Antigravity Agent for code generation, review, bug fixes, and debugging, and diagramming
+
+In addition, I read and learnt from a lot of blogs, articles, and documentation to understand the problem and build this application including but not limited to IBM Watsonx AI, Huggingface, FastAPI, VentureBeat, and ChromaDB documentation
 
 # TODOs
 1. [Done] - ~~Build a basic GUI for user to submit their queries and view the responses returned~~
