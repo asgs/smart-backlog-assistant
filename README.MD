@@ -1,48 +1,87 @@
-# Summary
-This is an attempt to build an AI ~Agent~ **Chatbot** that will read Jira ticket descriptions for new tickets and summarize the contents in a neat and concise way based on Jira data ingested in the past
+# Overview
+This project is an attempt to build an AI ~~Agent~~ **Chatbot** that will read Jira ticket descriptions for new tickets and summarize the contents in a neat and concise way based on data ingested in the past
 
-# Tech Stack
+# Problem Definition
+Users discuss product and customer requirements during meetings, brainstorming discussions, and other virtual means. These discussions are not formally documented and may be lacking a few finer details which may be required to build a product. These details are to be captured in Jira tickets with all the required information for the Development, and QA teams to implement and verify the expected behavior of the features. Plus, every organization has Jira or a similar system which has tickets created for every feature request, bug report, etc. in the past which are available for the Development and QA teams to refer to.
+
+The Goal of this project is to utilize AI technologies to read through existing Jira tickets data, understand the context, and patterns, and the format of the data to and let users key in new requirements or bug descriptions and summarize the contents in a neat and concise way. It will help reduce the effort and time required by the Users to gather the necessary details and build something that could be reviewed before finalizing the ticket
+
+# Solution Design
+
+## Tech Stack
 - Python3
-- FastAPI (with uvicorn)
-- sentence-transformers (with MiniLM for embedding and Qwen2.5 LM for Instruct purposes)
-- pandas
-- pyarrow
-- ChromaDB
-- tiktoken
-- ReactJS for frontend
-- Babel for JSX
+- FastAPI (with uvicorn to expose REST APIs)
+- sentence-transformers (with MiniLM-L6-v2 for embedding purposes)
+- transformers (with Qwen2.5-0.5B-Instruct for Instruct purposes)
+- pandas (for CSV data manipulation)
+- pyarrow (for efficient CSV reading)
+- ChromaDB (for vector storage and retrieval)
+- tiktoken (for token en/decoding)
+- ReactJS (for frontend)
+- Babel (for JSX)
 
-# Overall Architecture / Data Flow Visualization
-Thanks to [Mermaid.AI](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4), you can visualize the overall Architecture and Component Interaction Diagram
+## Overall Architecture / Data Flow Visualization
+Thanks to [Mermaid.ai](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4), you can visualize the overall Architecture and Component Interaction Diagram
 ![Architecture and Component Interaction Diagram](arch-diagram-with-interactions.png "Architecture Diagram")
 
-# Data Setup
-This agent needs external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources were tried from Kaggle
+## Key Components
+- REST API
+    - Exposes APIs to ingest data
+    - Exposes API to summarize content
+- Ingestion Service
+    - Reads data from CSV files
+    - Generates embeddings for the data
+    - Stores embeddings in ChromaDB
+- Summarization Service
+    - Generates embeddings for the query
+    - Retrieves similar embeddings from ChromaDB
+    - Generates summary using Instruct LM
+- Model Manager
+    - Manages loading and unloading of models
+    - Provides embeddings for the data
+- Vector DB
+    - Manages collections in ChromaDB
+    - Persists into and loads embeddings from ChromaDB
+- Config
+    - Centralized static configuration to tweak various settings including but not limited to model names, data locations, etc
+
+## Design Considerations
+- Use a smaller LM (like MiniLM) for embedding purposes while a larger LM (like Qwen2.5) for instruct/inference purposes
+- Host the small-to-mid-sized LMs locally to reduce cost while trading-off speed/latency
+- Switch/swap the LMs and other components easily by updating the Config without impacting the overall system
+- Build a mini-RAG system using a Vector Store (like ChromaDB) to build the knowledge-base
+- Divide data into smaller chunks to avoid overflowing the context window
+- Maintain two collections in the Vector Store - one for full document contents and one for chunked document contents
+- Include sample inputs and expected outputs within the prompt (few-shot prompting) to guide the LM
+- Use a reranker model to rerank the retrieved documents to improve the quality of the summary
+- Make the parameters like temperature, and top-p configurable while choosing reasonable defaults to balance creativity and coherence
+
+# Implementation
+
+## Data Setup
+This agent depends on external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources are tried from Kaggle
 
 - [Apache JIRA Issues](https://www.kaggle.com/datasets/tedlozzo/apaches-jira-issues?select=issues.csv)
 - [Jira Dataset](https://www.kaggle.com/datasets/cesaranasco/jira-dataset)
 
-whichever dataset is used, the expectation here is that it's a CSV file with column names configured in the [config.py](config.py#L20) file
+whichever dataset is used, the expectation here is that it's [a CSV file](config.py#L7) with the respective CSV [column names](config.py#L25) to be used for ingestion.
 
 # How to Run?
 1. Install python3
 2. Clone this git repo
-3. Navigate to the root of the repo and run `source .jts/bin/activate` to activate/switch to this virtual environment
-4. Run `pip install -r requirements.txt` to setup the required dependencies. You may have to upgrade pip if you get an `AssertionError`
-5. Download the data sources mentioned in the previous section and unzip to the source-data directory
-6. Run `uvicorn main:app` to ingest sample data and spin up the FastAPI server
+3. Navigate to the root of the repo and setup a virtual environment
+    1. Run `python3 -m venv .jts` to create a virtual env
+    2. Run `source .jts/bin/activate` to activate/switch to this virtual env
+4. Run `pip install -r requirements.txt` to setup the required dependencies. You may have to upgrade pip in case you encounter an `AssertionError`
+5. Download the data sources mentioned in the [previous section](#data-setup) and unzip to the source-data directory
+6. Run `uvicorn main:app` to ingest sample data and spin up the FastAPI ASGI server
 
 Once the ingestion completes, the app is ready with a [GUI](http://localhost:8000/ui/index.html) providing a screen like below. ![ingestion and summarization features](ui-home-sample.png "UI Home Page")
 
-# Sample Test
+# Testing
 
-## Ingest a new document
-
-Run the [ingest](test-scripts/ingest.py) script
-
-## Summarize a query
-
-Run the [summarize](test-scripts/summarize.py) script
+1. To Ingest a new document, run the [ingest](test-scripts/ingest.py) script
+2. To Summarize a query, run the [summarize](test-scripts/summarize.py) script
 
 # TODOs
 1. [Done] - ~~Build a basic GUI for user to submit their queries and view the responses returned~~
@@ -55,6 +94,8 @@ Run the [summarize](test-scripts/summarize.py) script
 # Future Enhancements
 
 1. Provide options to switch to a cloud-model accepting necessary configs like URL, Auth Token/API Key, etc
-2. Provide an endpoint to save/load pre-trained models on demand
-3. Model Quantization
-4. Introduce a Agent Routing layer to route processing to appropriate tool/agent based on the request
+2. Introduce admin, and user roles and implement Authentication and Authorization to beef up security 
+3. Provide an endpoint to save/load pre-trained models on demand
+4. Model Quantization to achieve a balance between speed and accuracy and reduce memory footprint
+5. Introduce a Agent Routing layer to route processing to appropriate tool/agent based on the request
+6. Build Data Integration layer to read and ingest data from external sources with different data formats
