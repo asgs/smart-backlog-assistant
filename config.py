@@ -26,8 +26,12 @@ class Settings:
 
         # Update status every N records for brevity purposes.
         self.STATUS_UPDATE_STEP = int(os.getenv("STATUS_UPDATE_STEP", 10))
-        # Prompt names
-        self.DOCUMENT_PROMPT_NAME = os.getenv("DOCUMENT_PROMPT_NAME", "document")
-        self.QUERY_PROMPT_NAME = os.getenv("QUERY_PROMPT_NAME", "query")
+
+        # chat template constants
+        self.CHAT_CONTEXT_PREFIX = os.getenv("CHAT_CONTEXT_PREFIX", "Context:")
+        self.CHAT_QUERY_PREFIX = os.getenv("CHAT_QUERY_PREFIX", "Query:")
+        self.CHAT_INPUT = os.getenv("CHAT_INPUT", "input")
+        self.CHAT_OUTPUT = os.getenv("CHAT_OUTPUT", "output")
+        self.CHAT_SYSTEM_PROMPT = os.getenv("CHAT_SYSTEM_PROMPT", "You're a Smart Backlog Assistant. Users expect you to elaborate, summarize, and format their Query into a JIRA-style ticket which must contain the following sections: 1. 'Description', 2. 'Acceptance Criteria', 3. 'Issue Priority', and 4. 'Issue Category' and not contain any tildes or code snippets using the Context provided.")
 
 settings = Settings()

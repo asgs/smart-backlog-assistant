@@ -34,14 +34,26 @@ def chunk_data(data: str, max_tokens: int = None) -> list[str]:
         chunks.append(chunk_text)
     return chunks
 
+def build_message(role: str, content: str) -> dict:
+    return {"role": role, "content": content}
+
+def build_system_message(content: str) -> dict:
+    return build_message("system", content)
+
+def build_user_message(content: str) -> dict:
+    return build_message("user", content)
+
+def build_assistant_message(content: str) -> dict:
+    return build_message("assistant", content)
+
 def build_chat_messages(contextual_data: str, query: str) -> str:
     logger.debug(f"Forming a chat prompt using context:{contextual_data} and query:{query}")
     messages = []
-    messages.append({"role": "system", "content": f"You're a Smart Backlog Assistant. Users expect you to elaborate, summarize, and format their Query into a JIRA-style ticket which must contain the following sections: 1. 'Description', 2. 'Acceptance Criteria', 3. 'Issue Priority', and 4. 'Issue Category' using the Context provided."})
-    if sample_io_pairs:
-        messages.append({"role": "user", "content": f"{sample_io_pairs[1]['input']}"})
-        messages.append({"role": "assistant", "content": f"{sample_io_pairs[1]['output']}"})
-        messages.append({"role": "user", "content": f"{sample_io_pairs[2]['input']}"})
-        messages.append({"role": "assistant", "content": f"{sample_io_pairs[2]['output']}"})
-    messages.append({"role": "user", "content": f"Context: {contextual_data}. Query: {query}"})
+    messages.append(build_system_message(settings.CHAT_SYSTEM_PROMPT))
+    # TODO - Restrict to only a few samples to avoid context explosion and rot.
+    for sample_io_pair in sample_io_pairs:
+        messages.append(build_user_message(sample_io_pair[settings.CHAT_INPUT]))
+        messages.append(build_assistant_message(sample_io_pair[settings.CHAT_OUTPUT]))
+    messages.append(build_user_message(f"{settings.CHAT_CONTEXT_PREFIX}: {contextual_data}. {settings.CHAT_QUERY_PREFIX}: {query}"))
+    messages.append(build_assistant_message(""))
     return messages

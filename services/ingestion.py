@@ -39,7 +39,7 @@ class IngestionService:
         for counter in range(chunk_count):
             ids.append(f"{id}_{counter}")
         if index is not None and index % settings.STATUS_UPDATE_STEP == 0:
-            logger.info(f"Indexing data#{index} with hash {id[0:5]} in {chunk_count} chunk(s)")
+            logger.info(f"Indexing data#{index} with hash {id[0:7]} in {chunk_count} chunk(s)")
         vector_db.add_chunks(embeddings=source_embeddings, ids=ids)
 
     def construct_row_data(self, row) -> str:

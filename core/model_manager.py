@@ -1,3 +1,4 @@
+from transformers.models.auto.auto_factory import _BaseAutoModelClass
 import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -29,21 +30,21 @@ class ModelManager:
         self.initialized = True
 
     @property
-    def transformer(self):
+    def transformer(self) -> SentenceTransformer:
         if self._transformer is None:
             logger.info(f"Loading SentenceTransformer: {settings.EMBEDDING_LM_NAME}")
             self._transformer = SentenceTransformer(settings.EMBEDDING_LM_NAME)
         return self._transformer
 
     @property
-    def reranker(self):
+    def reranker(self) -> CrossEncoder:
         if self._reranker is None:
             logger.info(f"Loading CrossEncoder: {settings.RERANKER_LM_NAME}")
             self._reranker = CrossEncoder(settings.RERANKER_LM_NAME)
         return self._reranker
 
     @property
-    def tokenizer(self):
+    def tokenizer(self) -> AutoTokenizer:
         if self._tokenizer is None:
             logger.info(f"Loading Tokenizer: {settings.CAUSAL_LM_NAME}")
             self._tokenizer = AutoTokenizer.from_pretrained(revision=settings.CAUSAL_LM_REVISION,
@@ -51,7 +52,7 @@ class ModelManager:
         return self._tokenizer
 
     @property
-    def causal_model(self):
+    def causal_model(self) -> _BaseAutoModelClass:
         if self._causal_model is None:
             logger.info(f"Loading Causal Model: {settings.CAUSAL_LM_NAME}")
             self._causal_model = AutoModelForCausalLM.from_pretrained(revision=settings.CAUSAL_LM_REVISION,

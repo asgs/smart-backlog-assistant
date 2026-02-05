@@ -27,21 +27,17 @@ app.add_middleware(
 app.mount("/ui", StaticFiles(directory="frontend"), name="ui")
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     # Pre-index data from CSV on startup if needed, or this can be a separate script
     logger.info("Application starting up. Ingesting initial data...")
     ingestion_service.ingest_from_csv()
     logger.info("Ready to serve user queries now!")
 
 @app.post("/summarize")
-async def summarize(request: SummarizeRequest):
+async def summarize(request: SummarizeRequest) -> dict:
     return await summarizer_service.summarize(request)
 
 @app.post("/ingest")
-async def ingest(request: IngestRequest):
+async def ingest(request: IngestRequest) -> dict:
     index = await ingestion_service.ingest_single(request.user_input)
     return {"status": "data ingested successfully.", "id": index}
-
-@app.post("/tune")
-async def tune(request: TuneRequest):
-    return await summarizer_service.do_few_shot_prompting(request.input, request.output)
