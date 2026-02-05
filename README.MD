@@ -4,7 +4,7 @@ This project is an attempt to build an AI ~~Agent~~ **Chatbot** that will read J
 # Problem Definition
 Users discuss product and customer requirements during meetings, brainstorming discussions, and other virtual means. These discussions are not formally documented and may be lacking a few finer details which may be required to build a product. These details are to be captured in Jira tickets with all the required information for the Development, and QA teams to implement and verify the expected behavior of the features. Plus, every organization has Jira or a similar system which has tickets created for every feature request, bug report, etc. in the past which are available for the Development and QA teams to refer to.
 
-The Goal of this project is to utilize AI technologies to read through existing Jira tickets data, understand the context, and patterns, and the format of the data to and let users key in new requirements or bug descriptions and summarize the contents in a neat and concise way. It will help reduce the effort and time required by the Users to gather the necessary details and build something that could be reviewed before finalizing the ticket
+The Goal of this project is to utilize AI technologies to **process existing Jira tickets data**, understand the context, and patterns**, and the format of the data to let users key in new requirements or bug descriptions and **summarize the contents** in a neat and concise way. It will help reduce the effort and time required by the users to gather the necessary details and build something that could be reviewed before finalizing the ticket
 
 # Solution Design
 
@@ -75,11 +75,7 @@ Thanks to [Mermaid.ai](https://mermaid.ai/d/7c698629-39e6-446f-bb39-2725ee697de4
 6. Sends the Chat Template message to the Instruct LM to generate the summary
 
 ## Model Layer
-Manages the models below
-
-1. Embedding Model
-2. Reranker Model
-3. Instruct Model
+Manages the Embedding, Reranker, and Instruct models
 
 # Data Setup
 This agent depends on external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources are tried from Kaggle
@@ -115,7 +111,7 @@ well, isn't fascinating to use AI tools to build AI-powered applications? I used
 - Llama, Google Gemini 3 Pro for advanced Q&A and code generation
 - Google Antigravity Agent for code generation, review, bug fixes, and debugging, and diagramming
 
-In addition, I read and learnt from a lot of blogs, articles, and documentation to understand the problem and build this application including but not limited to IBM Watsonx AI, Huggingface, FastAPI, VentureBeat, and ChromaDB documentation
+In addition, I read and learnt from a lot of blogs, articles, and documentation to understand the problem and build this application including but not limited to IBM Watsonx AI, 🤗Huggingface, FastAPI, VentureBeat, and ChromaDB documentation
 
 # TODOs
 1. [Done] - ~~Build a basic GUI for user to submit their queries and view the responses returned~~
@@ -125,6 +121,10 @@ In addition, I read and learnt from a lot of blogs, articles, and documentation 
 5. [**WIP**] - Model Fine/Prompt-tuning
 6. [Done] - ~~Configure ChromaDB to use hnsw indexing~~
 
+# Challenges
+1. Achieve more consistent and accurate summarization
+2. Reduce the latency and improve performance by making use of GPUs whenever available
+
 # Future Enhancements
 1. Provide options to switch to a cloud-hosted LM accepting necessary configs like URL, Auth Token/API Key, etc
 2. Introduce admin, and user roles and implement Authn and Authz to beef up security
@@ -132,3 +132,7 @@ In addition, I read and learnt from a lot of blogs, articles, and documentation 
 4. Quantize the Models to achieve a balance between speed and accuracy and reduce memory footprint
 5. Introduce an "Agent Routing" layer to route processing to appropriate tool/agent based on the request
 6. Build Data Integration layer to read and ingest data from external sources with different data formats
+7. Build a Dashboard to display metrics like number of documents ingested, number of queries processed, average response time, etc
+8. Use a full-blown framework like LangChain, Langfuse or LlamaIndex to build the system
+9. Explore possibilities of reducing the context window size by using more advanced summarization techniques
+10. Dockerize the build and deploy to k8s with many pods (as necessary) to parallelize the processing
