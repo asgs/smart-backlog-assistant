@@ -61,7 +61,7 @@ class IngestionService:
         max_rows = settings.MAX_RECORD_COUNT;
 
         try:
-            data_frame = pd.read_csv(settings.SRC_DATA_LOC, nrows=max_rows)
+            data_frame = pd.read_csv(settings.SRC_DATA_LOC, nrows=max_rows, engine="pyarrow")
             logger.info("Source data read successfully")
         except Exception as e:
             logger.error(f"Failed to read CSV: {e}")
