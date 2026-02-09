@@ -78,7 +78,7 @@ A high level Arch Diagram with data flow indicated is below.
 Manages the Embedding, Reranker, and Instruct models
 
 # Data Setup
-This agent depends on external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources are tried from Kaggle
+This agent depends on external data sources to build the knowledge base required to augment the responses from the LM. Please download this publicly accessible data source from Kaggle
 
 - [Apache JIRA Issues](https://www.kaggle.com/datasets/tedlozzo/apaches-jira-issues?select=issues.csv)
 
