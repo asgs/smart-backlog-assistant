@@ -13,6 +13,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+httpx_logger = logging.getLogger("httpx")
+# this is to reduce the HTTP-307 specific verbose logging
+httpx_logger.setLevel(logging.WARNING)
+
 app = FastAPI()
 
 # Stuff that only applies to Non-Production environments
