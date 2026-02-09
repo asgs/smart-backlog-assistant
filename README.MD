@@ -81,7 +81,6 @@ Manages the Embedding, Reranker, and Instruct models
 This agent depends on external data sources to build the knowledge base required to augment the responses from the LM. Currently, two publicly accessible data sources are tried from Kaggle
 
 - [Apache JIRA Issues](https://www.kaggle.com/datasets/tedlozzo/apaches-jira-issues?select=issues.csv)
-- [Jira Dataset](https://www.kaggle.com/datasets/cesaranasco/jira-dataset)
 
 whichever dataset is used, the expectation here is that it's [a CSV file](config.py#L7) with the respective CSV [column names](config.py#L25) to be used for ingestion.
 
@@ -89,11 +88,11 @@ whichever dataset is used, the expectation here is that it's [a CSV file](config
 1. Install python3
 2. Clone this git repo
 3. Navigate to the root of the repo and setup a virtual environment
-    1. Run `python3 -m venv .jts` to create a virtual env
-    2. Run `source .jts/bin/activate` to activate/switch to this virtual env
-4. Run `pip install -r requirements.txt` to setup the required dependencies. You may have to upgrade pip in case you encounter an `AssertionError`
-5. Download the data sources mentioned in the [previous section](#data-setup) and unzip to the source-data directory
-6. Run `uvicorn main:app` to ingest sample data and spin up the FastAPI ASGI server
+    1. Run `python3 -m venv .sba` to create a virtual env
+    2. Run `pip install -r requirements.txt` to setup the required dependencies. You may have to upgrade pip in case you encounter an `AssertionError`
+    3. Run `source .sba/bin/activate` to activate/switch to this virtual env
+4. Download the data sources mentioned in the [Data Setup](#data-setup) section and unzip the file *issues.csv* to the source-data directory
+5. Run `uvicorn main:app` to ingest sample data and spin up the FastAPI ASGI server
 
 Once the ingestion completes, the app is ready with a [GUI](http://localhost:8000/ui/index.html) providing a screen like below. ![ingestion and summarization features](docs/ui-home-sample.png "UI Home Page")
 
@@ -138,3 +137,4 @@ In addition, I read and learnt from a lot of blogs, articles, and documentation 
 8. Use a full-blown framework like LangChain, Langfuse or LlamaIndex to build the system
 9. Explore possibilities of reducing the context window size by using more advanced summarization techniques
 10. Dockerize the build and deploy to k8s with many pods (as necessary) to parallelize the processing
+
