@@ -71,6 +71,6 @@ def build_chat_messages(contextual_data: str, query: str) -> str:
     for sample_io_pair in sample_io_pairs:
         messages.append(build_user_message(sample_io_pair[settings.CHAT_INPUT]))
         messages.append(build_assistant_message(sample_io_pair[settings.CHAT_OUTPUT]))
-    messages.append(build_user_message(f"{settings.CHAT_CONTEXT_PREFIX}: {contextual_data}. {settings.CHAT_QUERY_PREFIX}: {query}"))
+    messages.append(build_user_message(f"{settings.CHAT_CONTEXT_PREFIX} {contextual_data}. {settings.CHAT_QUERY_PREFIX} {query}"))
     messages.append(build_assistant_message(""))
     return messages
