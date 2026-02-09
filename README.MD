@@ -89,8 +89,9 @@ whichever dataset is used, the expectation here is that it's [a CSV file](config
 2. Clone this git repo
 3. Navigate to the root of the repo and setup a virtual environment
     1. Run `python3 -m venv .sba` to create a virtual env
-    2. Run `pip install -r requirements.txt` to setup the required dependencies. You may have to upgrade pip in case you encounter an `AssertionError`
-    3. Run `source .sba/bin/activate` to activate/switch to this virtual env
+    2. Run `source .sba/bin/activate` to activate this virtual env
+    3. Run `pip install -r requirements.txt` to setup the required dependencies. You may have to upgrade pip in case you encounter an `AssertionError`
+    4. Run `source .sba/bin/activate` to re-activate this virtual env
 4. Download the data sources mentioned in the [Data Setup](#data-setup) section and unzip the file *issues.csv* to the source-data directory
 5. Run `uvicorn main:app` to ingest sample data and spin up the FastAPI ASGI server
 
