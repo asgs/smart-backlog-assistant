@@ -22,7 +22,7 @@ The Goal of this project is to utilize AI technologies to **process existing Jir
 
 ## Overall Architecture / Data Flow Visualization
 A high level Arch Diagram with data flow indicated is below.
-![Architecture and Component Interaction Diagram](docs/architecture_diagram.png "Architecture Diagram")
+![Architecture and Component Interaction Diagram](docs/architecture-diagram.png "Architecture Diagram")
 
 ## Key Components
 - REST API
