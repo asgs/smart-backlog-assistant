@@ -15,7 +15,7 @@ class Settings:
         #self.CAUSAL_LM_NAME = os.getenv("CAUSAL_LM_NAME", "google/gemma-3-1b-it")
         #self.CAUSAL_LM_REVISION = os.getenv("CAUSAL_LM_REVISION", "dcc83ea841ab6100d6b47a070329e1ba4cf78752")
         self.EMBEDDING_LM_NAME = os.getenv("EMBEDDING_LM_NAME", "sentence-transformers/all-MiniLM-L6-v2")
-        self.EMBEDDING_LM_SEQ_LEN = int(os.getenv("EMBEDDING_LM_SEQ_LEN", 256))
+        self.CAUSAL_LM_SEQ_LEN = int(os.getenv("CAUSAL_LM_SEQ_LEN", 32768))
         self.RERANKER_LM_NAME = os.getenv("RERANKER_LM_NAME", "cross-encoder/ms-marco-MiniLM-L-6-v2")
 
         self.TIKTOKEN_ENCODING = os.getenv("TIKTOKEN_ENCODING", "o200k_base")
@@ -32,6 +32,6 @@ class Settings:
         self.CHAT_QUERY_PREFIX = os.getenv("CHAT_QUERY_PREFIX", "Query:")
         self.CHAT_INPUT = os.getenv("CHAT_INPUT", "input")
         self.CHAT_OUTPUT = os.getenv("CHAT_OUTPUT", "output")
-        self.CHAT_SYSTEM_PROMPT = os.getenv("CHAT_SYSTEM_PROMPT", "You're a Smart Backlog Assistant. Users expect you to elaborate, summarize, and format their Query into a JIRA-style ticket which must contain the following sections: 1. 'Description', 2. 'Acceptance Criteria', 3. 'Issue Priority', and 4. 'Issue Category' and not contain any tildes or code snippets using the Context provided.")
+        self.CHAT_SYSTEM_PROMPT = os.getenv("CHAT_SYSTEM_PROMPT", "You're a Smart Backlog Assistant. Users expect you to elaborate, summarize, and format their Query into a JIRA-style ticket using the Context provided. The ticket must always contain the following sections. 1. 'Description', 2. 'Acceptance Criteria', 3. 'Issue Priority', and 4. 'Issue Category'. Do not produce any tildes or code snippets.")
 
 settings = Settings()

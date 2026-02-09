@@ -8,7 +8,7 @@ from core.model_manager import model_manager
 from core.vector_db import vector_db
 from request_models import SummarizeRequest
 
-sys.tracebacklimit = 2 # Makes the traces less verbose.
+sys.tracebacklimit = 5 # Makes the traces less verbose.
 logger = logging.getLogger(__name__)
 show_encoding_progress = False
 if logger.isEnabledFor(logging.DEBUG):
@@ -96,7 +96,6 @@ class SummarizerService:
                 return self.build_error_summary_dict(st)
 
             doc = self.rerank_docs(user_input, docs)
-
             response = self.query_lm(user_input, doc, request.token_count, request.top_p, request.temperature)
 
             summary = self.extract_summary(response)

@@ -6,6 +6,6 @@ torch
 accelerate
 pandas
 tiktoken
+nltk
 chromadb
-pyarrow
 aiofiles

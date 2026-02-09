@@ -4,9 +4,11 @@ import tiktoken
 import logging
 from config import settings
 import json
+from nltk.tokenize import sent_tokenize
 
 logger = logging.getLogger(__name__)
-
+encoding = tiktoken.get_encoding(settings.TIKTOKEN_ENCODING)
+max_tokens_allowed = settings.CAUSAL_LM_SEQ_LEN
 try:
     with open("samples/samples.json") as file:
         sample_io_pairs = json.load(file)
@@ -20,18 +22,33 @@ def gen_hash(user_input: str) -> str:
     h256.update(user_input.encode(encodings.utf_8.getregentry().name))
     return h256.hexdigest()
 
-def chunk_data(data: str, max_tokens: int = None) -> list[str]:
-    if max_tokens is None or max_tokens > settings.EMBEDDING_LM_SEQ_LEN or max_tokens < 1:
-        max_tokens = settings.EMBEDDING_LM_SEQ_LEN
+def chunk_data(data: list[str], max_tokens: int = None) -> list[str]:
+    if max_tokens is None or max_tokens > max_tokens_allowed or max_tokens < 1:
+        max_tokens = max_tokens_allowed
         logger.debug(f"Resetting the sequence length to {max_tokens}")
 
-    encoding = tiktoken.get_encoding(settings.TIKTOKEN_ENCODING)
-    tokens = encoding.encode(data)
     chunks = []
-    for counter in range(0, len(tokens), max_tokens):
-        chunk_tokens = tokens[counter:counter + max_tokens]
-        chunk_text = encoding.decode(chunk_tokens)
-        chunks.append(chunk_text)
+    for datum in data:
+        tokens = encoding.encode(datum)
+        if len(tokens) <= max_tokens:
+            logger.debug(f"Datum {datum} has {len(tokens)} tokens")
+            chunks.append(datum)
+        else:
+            sentences = sent_tokenize(datum)
+            current_chunks = []
+            current_chunk_tokens = 0
+            for sentence in sentences:
+                sentence_tokens = encoding.encode(sentence)
+                sentence_token_count = len(sentence_tokens)
+                if sentence_token_count + current_chunk_tokens <= max_tokens:
+                    current_chunks.append(sentence)
+                    current_chunk_tokens += sentence_token_count
+                else:
+                    chunks.append(" ".join(current_chunks))
+                    current_chunks = [sentence]
+                    current_chunk_tokens = sentence_token_count
+            if current_chunks:
+                chunks.append(" ".join(current_chunks))
     return chunks
 
 def build_message(role: str, content: str) -> dict:

@@ -17,23 +17,25 @@ class IngestionService:
     def __init__(self):
         self.futures = []
 
-    def index_full_doc_into_collxn(self, data: str, index=None, id=None) -> None:
+    def index_full_doc_into_collxn(self, data: list[str], index=None, id=None) -> None:
         # TODO - Remove this log statement once ModelManager is mulithreaded-capable.
         # logger.info(f"Model Manager is {model_manager}")
+        full_document = " . ".join(data)
         if id is None:
-            id = gen_hash(data)
+            id = gen_hash(full_document)
 
         ids = [id]
         if index is not None and index % settings.STATUS_UPDATE_STEP == 0:
             logger.info(f"Indexing data#{index} with hash {id[0:5]} in full")
-        vector_db.add_full_docs(ids=ids, documents=[data])
+        vector_db.add_full_docs(ids=ids, documents=[full_document])
 
-    def index_chunked_doc_into_collxn(self, data: str, index=None, id=None) -> None:
+    def index_chunked_doc_into_collxn(self, data: list[str], index=None, id=None) -> None:
         chunks = chunk_data(data)
+        logger.debug("About to encode chunks")
         source_embeddings = model_manager.transformer.encode(chunks, prompt_name="document", show_progress_bar=show_encoding_progress)
         ids = []
         if id is None:
-            id = gen_hash(data)
+            id = gen_hash(" . ".join(data))
 
         chunk_count = len(chunks)
         for counter in range(chunk_count):
@@ -42,18 +44,18 @@ class IngestionService:
             logger.info(f"Indexing data#{index} with hash {id[0:7]} in {chunk_count} chunk(s)")
         vector_db.add_chunks(embeddings=source_embeddings, ids=ids)
 
-    def construct_row_data(self, row) -> str:
+    def construct_row_data(self, row) -> list[str]:
         cols = settings.JIRA_CSV_COLUMNS
         data_parts = []
         for col in cols:
-            data_part = row[col]
+            data_part: str = row[col]
             if (data_part is None or data_part == "" or data_part == "nan" or
                 data_part == "NaN" or data_part is np.nan):
                 logger.warn(f"Skipping unknown/invalid value '{data_part}' for the column '{col}'")
                 continue
             data_parts.append(data_part)
         logger.debug(f"Data parts: {data_parts}")
-        return ". ".join(data_parts)
+        return data_parts
 
     def ingest_from_csv(self) -> None:
         start_time = time.perf_counter()
@@ -61,7 +63,7 @@ class IngestionService:
         max_rows = settings.MAX_RECORD_COUNT;
 
         try:
-            data_frame = pd.read_csv(settings.SRC_DATA_LOC, nrows=max_rows, engine="pyarrow")
+            data_frame = pd.read_csv(settings.SRC_DATA_LOC, nrows=max_rows)
             logger.info("Source data read successfully")
         except Exception as e:
             logger.error(f"Failed to read CSV: {e}")
@@ -87,8 +89,8 @@ class IngestionService:
 
     async def ingest_single(self, user_input: str) -> str:
         id = gen_hash(user_input)
-        self.index_full_doc_into_collxn(data=user_input, id=id)
-        self.index_chunked_doc_into_collxn(data=user_input, id=id)
+        self.index_full_doc_into_collxn(data=[user_input], id=id)
+        self.index_chunked_doc_into_collxn(data=[user_input], id=id)
         return id
 
     def _wait_for_indexing(self, start_time) -> None:
