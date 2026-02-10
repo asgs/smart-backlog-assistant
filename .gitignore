@@ -5,3 +5,5 @@
 lib64
 **/share/*
 chroma/*
+.sba/*
+
